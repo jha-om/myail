@@ -24,6 +24,7 @@ export const POST = async (req: Request) => {
                 imageUrl: image_url,
             }
         })
+        return new Response('Webhook received', { status: 200 });
     } catch (error) {
         console.error('unable to add new user to db', error);
     }
