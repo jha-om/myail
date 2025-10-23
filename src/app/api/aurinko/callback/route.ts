@@ -2,6 +2,8 @@ import { exchangeCodeForAccessToken, getAccountDetails } from "@/lib/aurinko";
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs/server"
 import { type NextRequest, NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions"
+import axios from "axios";
 
 export const GET = async (req: NextRequest) => {
     const { userId } = await auth();
@@ -52,5 +54,17 @@ export const GET = async (req: NextRequest) => {
             name: token.accessToken,
         }
     })
+
+    // trigger initial sync endpoint;
+    waitUntil(
+        axios.post(`${process.env.NEXT_PUBLIC_URL}/api/initial-sync`, {
+            accountId: token.accountId.toString(),
+            userId,
+        }).then(response => {
+            console.log('initial sync triggered', response.data);
+        }).catch(error => {
+            console.error('failed to trigger initial sync', error);
+        })
+    )
     return NextResponse.redirect(new URL('/mail', req.url));
 }

@@ -2,8 +2,8 @@
 
 import { auth } from "@clerk/nextjs/server"
 import axios from "axios"
+import { AURINKO_URL } from "@/lib/account"
 
-const AURINKO_URL = "https://api.aurinko.io";
 // https://api.aurinko.io/v1/auth/token/{code}
 
 interface responseProps {
