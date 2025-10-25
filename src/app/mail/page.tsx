@@ -1,4 +1,8 @@
-import MailComponent from "@/components/mail"
+import dynamic from "next/dynamic"
+
+const MailComponent = dynamic(() => {
+    return import('@/components/mail')
+})
 
 const Mail = () => {
     return (

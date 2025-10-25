@@ -1,24 +1,42 @@
 "use client"
 
-import { useEffect, useState } from "react";
 import { Nav } from "./nav";
+import { FileIcon, InboxIcon, SendIcon } from "lucide-react";
 
 type sidebarProps = {
     isCollapsed: boolean,
+    currentTab: string,
+    onTabChange: (tab: string) => void
 }
 
-const Sidebar = ({ isCollapsed }: sidebarProps) => {
-    const [accountId, setAccountId] = useState<string>('');
-
-    useEffect(() => {
-        const storedAccountId = localStorage.getItem('accountId');
-        if (storedAccountId) {
-            setAccountId(storedAccountId);
-        }
-    }, []);
-    
+const Sidebar = ({ isCollapsed, currentTab, onTabChange }: sidebarProps) => {
+    console.log("current tab: ", currentTab)
     return (
-        <div>nav</div>
+        <Nav
+            isCollapsed={isCollapsed}
+            currentTab={currentTab}
+            onTabChange={onTabChange}
+            links={[
+                {
+                    title: "Inbox",
+                    label: '1',
+                    icon: InboxIcon,
+                    variant: currentTab === 'inbox' ? 'default' : 'ghost'
+                },
+                {
+                    title: "Drafts",
+                    label: '2',
+                    icon: FileIcon,
+                    variant: currentTab === 'drafts' ? 'default' : 'ghost',
+                },
+                {
+                    title: "Sent",
+                    label: '3',
+                    icon: SendIcon,
+                    variant: currentTab === 'sent' ? 'default' : 'ghost'
+                }
+            ]}
+        />
     )
 }
 

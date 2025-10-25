@@ -1,7 +1,6 @@
 "use client"
 
 import type { LucideIcon } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import {
@@ -9,10 +8,11 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useEffect, useState } from "react"
 
 interface NavProps {
     isCollapsed: boolean
+    currentTab: string
+    onTabChange: (tab: string) => void
     links: {
         title: string
         label?: string
@@ -21,19 +21,9 @@ interface NavProps {
     }[]
 }
 
-export function Nav({ links, isCollapsed }: NavProps) {
-    const [tab, setTab] = useState<string>("inbox")
-
-    useEffect(() => {
-        const storedAccountId = localStorage.getItem('myail-tab');
-        if (storedAccountId) {
-            setTab(storedAccountId);
-        }
-    }, []);
-
-    const handleTabChange = (t: string) => {
-        setTab(t);
-        localStorage.setItem("myail-tab", t);
+export function Nav({ links, isCollapsed, currentTab, onTabChange }: NavProps) {
+    const handleTabChange = (title: string) => {
+        onTabChange(title.toLowerCase());
     }
 
     return (
@@ -47,7 +37,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
                         <Tooltip key={index} delayDuration={0}>
                             <TooltipTrigger asChild>
                                 <span
-                                    onClick={() => handleTabChange(link.title.toLowerCase())}
+                                    onClick={() => handleTabChange(link.title)}
                                     className={cn(
                                         buttonVariants({ variant: link.variant, size: "icon" }),
                                         "h-9 w-9 cursor-pointer",
@@ -71,7 +61,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
                     ) : (
                         <span
                             key={index}
-                            onClick={() => handleTabChange(link.title.toLowerCase())}
+                            onClick={() => handleTabChange(link.title)}
                             className={cn(
                                 buttonVariants({ variant: link.variant, size: "sm" }),
                                 link.variant === "default" &&

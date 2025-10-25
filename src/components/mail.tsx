@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/resizable";
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +21,19 @@ type mailProps = {
 }
 const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, defaultCollapse }: mailProps) => {
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapse);
+    const [tab, setTab] = useState<string>('inbox');
+
+    useEffect(() => {
+        const storedTab = localStorage.getItem('myail-tab');
+        if (storedTab) {
+            setTab(storedTab);
+        }
+    }, []);
+
+    const handleTabChange = (newTab: string) => {
+        setTab(newTab);
+        localStorage.setItem('myail-tab', newTab);
+    };
 
     return (
         <TooltipProvider delayDuration={0}>
@@ -48,7 +61,11 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                         </div>
                         <Separator />
                         {/* Sidebar */}
-                        <Sidebar />
+                        <Sidebar 
+                            isCollapsed={isCollapsed} 
+                            currentTab={tab} 
+                            onTabChange={handleTabChange} 
+                        />
                         <div className="flex-1" />
                         <Separator />
                         Ask AI
