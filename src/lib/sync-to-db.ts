@@ -10,9 +10,12 @@ export async function syncEmailsToDatabase(emails: EmailMessage[], accountId: st
     // we can write custom queue using bullmq;
 
     // for batch processing we can write like(written outside of this function);
-    const limit = pLimit(10);
+    const limit = pLimit(2);
     try {
-        await Promise.all(emails.map((email, index) => upsertEmail(email, accountId, index)));
+        // await Promise.all(emails.map((email, index) => upsertEmail(email, accountId, index)));
+        for (const email of emails) {
+            await upsertEmail(email, accountId, 0);
+        }
     } catch (error) {
         console.log('error', error);
     }
