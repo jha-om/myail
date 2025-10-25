@@ -11,6 +11,8 @@ import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AccountSwitcher from "@/components/account-switcher";
+import Sidebar from "./sidebar";
 
 type mailProps = {
     defaultLayout: number[] | undefined,
@@ -40,12 +42,13 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                     className={cn(isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out")}
                 >
                     <div className="flex flex-col h-full flex-1">
-                        <div className={cn("text-xl font-bold flex items-center justify-between py-4", isCollapsed ? "h-[60px]" : "px-2")}>
+                        <div className={cn("flex h-[60px] items-center justify-between", isCollapsed ? "h-[60px]" : "px-2")}>
                             {/* account switcher */}
-                            Account Switcher
+                            <AccountSwitcher isCollapsed={isCollapsed} />
                         </div>
                         <Separator />
-                        Sidebar
+                        {/* Sidebar */}
+                        <Sidebar />
                         <div className="flex-1" />
                         <Separator />
                         Ask AI

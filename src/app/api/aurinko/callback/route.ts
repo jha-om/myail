@@ -37,8 +37,7 @@ export const GET = async (req: NextRequest) => {
         }, { status: 400 })
     }
 
-    const accountDetails = await getAccountDetails(token.accessToken);
-
+    const accountDetails = await getAccountDetails(token.accessToken);    
     await db.account.upsert({
         where: {
             id: token.accountId.toString(),
@@ -51,7 +50,7 @@ export const GET = async (req: NextRequest) => {
             userId,
             accessToken: token.accessToken,
             emailAddress: accountDetails.email,
-            name: token.accessToken,
+            name: accountDetails.name,
         }
     })
 
