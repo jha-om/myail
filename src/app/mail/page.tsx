@@ -6,7 +6,9 @@ const MailComponent = dynamic(() => {
 
 const Mail = () => {
     return (
-        <MailComponent defaultLayout={[20, 32, 48]} navCollapsedSize={10} defaultCollapse={false}/>
+        <div className="h-screen w-full overflow-hidden">
+            <MailComponent defaultLayout={[20, 32, 48]} navCollapsedSize={3} defaultCollapse={false} />
+        </div>
     )
 }
 

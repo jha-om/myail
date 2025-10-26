@@ -1,7 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react";
 import { Nav } from "./nav";
 import { FileIcon, InboxIcon, SendIcon } from "lucide-react";
+import { api } from "@/trpc/react";
 
 type sidebarProps = {
     isCollapsed: boolean,
@@ -10,7 +12,33 @@ type sidebarProps = {
 }
 
 const Sidebar = ({ isCollapsed, currentTab, onTabChange }: sidebarProps) => {
-    console.log("current tab: ", currentTab)
+    const [accountId, setAccountId] = useState<string>('');
+    
+    useEffect(() => {
+        const storedAccountId = localStorage.getItem('accountId');
+        if (storedAccountId) {
+            setAccountId(storedAccountId);
+        }
+    }, []);
+
+    const { data: inboxThreads } = api.account.getNumThreads.useQuery({
+        accountId,
+        tab: 'inbox',
+    }, {
+        enabled: !!accountId,
+    })
+    const { data: draftThreads } = api.account.getNumThreads.useQuery({
+        accountId,
+        tab: 'drafts',
+    }, {
+        enabled: !!accountId,
+    })
+    const { data: sentThreads } = api.account.getNumThreads.useQuery({
+        accountId,
+        tab: 'sent',
+    }, {
+        enabled: !!accountId,
+    })
     return (
         <Nav
             isCollapsed={isCollapsed}
@@ -19,19 +47,19 @@ const Sidebar = ({ isCollapsed, currentTab, onTabChange }: sidebarProps) => {
             links={[
                 {
                     title: "Inbox",
-                    label: '1',
+                    label: inboxThreads?.toString() ?? '0',
                     icon: InboxIcon,
                     variant: currentTab === 'inbox' ? 'default' : 'ghost'
                 },
                 {
                     title: "Drafts",
-                    label: '2',
+                    label: draftThreads?.toString() ?? '0',
                     icon: FileIcon,
                     variant: currentTab === 'drafts' ? 'default' : 'ghost',
                 },
                 {
                     title: "Sent",
-                    label: '3',
+                    label: sentThreads?.toString() ?? '0',
                     icon: SendIcon,
                     variant: currentTab === 'sent' ? 'default' : 'ghost'
                 }

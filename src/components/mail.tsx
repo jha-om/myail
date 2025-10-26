@@ -8,6 +8,8 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +24,26 @@ type mailProps = {
 const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, defaultCollapse }: mailProps) => {
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapse);
     const [tab, setTab] = useState<string>('inbox');
+    const searchParams = useSearchParams();
+    
+    useEffect(() => {
+        const error = searchParams.get('error');
+        const success = searchParams.get('success');
+
+        if (error === 'account_already_exists') {
+            toast.error("Account Already Exists", {
+                description: "This email account is already linked to your profile.",
+            });
+        } else if (success === 'account_linked') {
+            toast.success("Account Linked Successfully", {
+                description: "Your email account has been connected.",
+            });
+        }
+
+        if (error || success) {
+            window.history.replaceState({}, '', '/mail');
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const storedTab = localStorage.getItem('myail-tab');
@@ -37,75 +59,121 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
 
     return (
         <TooltipProvider delayDuration={0}>
-            <ResizablePanelGroup direction="horizontal" onLayout={(sizes: number[]) => {
-                console.log(sizes);
-            }} className="items-stretch h-full min-h-screen">
+            <ResizablePanelGroup 
+                direction="horizontal" 
+                className="h-screen max-h-screen w-full overflow-hidden"
+            >
+                {/* Sidebar Panel */}
                 <ResizablePanel
                     defaultSize={defaultLayout[0]}
                     collapsedSize={navCollapsedSize}
                     collapsible={true}
                     minSize={15}
-                    maxSize={40}
-                    onCollapse={() => {
-                        setIsCollapsed(true)
-                    }}
-                    onResize={() => {
-                        setIsCollapsed(false)
-                    }}
-                    className={cn(isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out")}
+                    maxSize={25}
+                    onCollapse={() => setIsCollapsed(true)}
+                    onResize={() => setIsCollapsed(false)}
+                    className={cn(
+                        "transition-all duration-300 ease-in-out",
+                        isCollapsed && "min-w-[50px]"
+                    )}
                 >
-                    <div className="flex flex-col h-full flex-1">
-                        <div className={cn("flex h-[60px] items-center justify-between", isCollapsed ? "h-[60px]" : "px-2")}>
-                            {/* account switcher */}
+                    <div className="flex flex-col h-full">
+                        {/* Account Switcher - Match height with email panel header */}
+                        <div className={cn(
+                            "flex items-center h-[52px] border-b",
+                            isCollapsed ? "justify-center" : "px-6 justify-center"
+                        )}>
                             <AccountSwitcher isCollapsed={isCollapsed} />
                         </div>
-                        <Separator />
-                        {/* Sidebar */}
-                        <Sidebar 
-                            isCollapsed={isCollapsed} 
-                            currentTab={tab} 
-                            onTabChange={handleTabChange} 
+
+                        {/* Navigation */}
+                        <Sidebar
+                            isCollapsed={isCollapsed}
+                            currentTab={tab}
+                            onTabChange={handleTabChange}
                         />
+
+                        {/* Spacer */}
                         <div className="flex-1" />
-                        <Separator />
-                        Ask AI
+
+                        {/* Ask AI Button */}
+                        <div className="border-t p-4">
+                            <button className={cn(
+                                "w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium",
+                                isCollapsed ? "h-10 text-xs" : "h-10 text-sm"
+                            )}>
+                                {isCollapsed ? "AI" : "Ask AI"}
+                            </button>
+                        </div>
                     </div>
                 </ResizablePanel>
-                <ResizableHandle />
+
+                <ResizableHandle withHandle />
+
+                {/* Email List Panel */}
                 <ResizablePanel
                     defaultSize={defaultLayout[1]}
                     minSize={30}
+                    maxSize={50}
                 >
-                    <Tabs defaultValue="inbox">
-                        <div className="flex items-center px-4 py-2">
-                            <h1 className="text-xl font-bold">Inbox</h1>
-                            <TabsList className="ml-auto">
-                                <TabsTrigger value="inbox" className="text-zinc-600 dark:text-zinc-200">
+                    <Tabs value={tab} onValueChange={handleTabChange} className="flex flex-col h-full">
+                        {/* Header - Match height with sidebar */}
+                        <div className="flex items-center justify-between h-[52px] px-6 border-b">
+                            <h1 className="text-xl font-bold capitalize">{tab}</h1>
+                            <TabsList>
+                                <TabsTrigger value="inbox">
                                     Inbox
                                 </TabsTrigger>
-                                <TabsTrigger value="done" className="text-zinc-600 dark:text-zinc-200">
+                                <TabsTrigger value="done">
                                     Done
                                 </TabsTrigger>
                             </TabsList>
                         </div>
 
-                        <Separator />
                         {/* Search Bar */}
-                        Search Bar
-                        <TabsContent value="inbox">
-                            Inbox
+                        <div className="px-6 py-3 border-b">
+                            <input
+                                type="search"
+                                placeholder="Search emails..."
+                                className="w-full px-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            />
+                        </div>
+
+                        {/* Email List Content */}
+                        <TabsContent value="inbox" className="flex-1 overflow-auto m-0">
+                            <div className="p-4">
+                                <p className="text-muted-foreground text-sm text-center py-8">
+                                    No emails in inbox
+                                </p>
+                            </div>
                         </TabsContent>
-                        <TabsContent value="done">
-                            Done
+                        <TabsContent value="done" className="flex-1 overflow-auto m-0">
+                            <div className="p-4">
+                                <p className="text-muted-foreground text-sm text-center py-8">
+                                    No completed emails
+                                </p>
+                            </div>
                         </TabsContent>
                     </Tabs>
                 </ResizablePanel>
-                <ResizableHandle />
+
+                <ResizableHandle withHandle />
+
+                {/* Thread Detail Panel */}
                 <ResizablePanel
                     defaultSize={defaultLayout[2]}
                     minSize={30}
                 >
-                    Thread&apos;s
+                    <div className="flex flex-col h-full">
+                        <div className="flex items-center justify-between h-[52px] px-6 border-b">
+                            <h2 className="text-lg font-semibold">Thread Details</h2>
+                        </div>
+                        <div className="flex-1 overflow-auto p-6">
+                            <p className="text-muted-foreground text-sm text-center py-8">
+                                Select an email to view details
+                            </p>
+                        </div>
+                    </div>
                 </ResizablePanel>
             </ResizablePanelGroup>
         </TooltipProvider>

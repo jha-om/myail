@@ -37,7 +37,23 @@ export const GET = async (req: NextRequest) => {
         }, { status: 400 })
     }
 
-    const accountDetails = await getAccountDetails(token.accessToken);    
+    const accountDetails = await getAccountDetails(token.accessToken);
+    
+    // Check if this email address is already linked to this user
+    const existingAccount = await db.account.findFirst({
+        where: {
+            userId,
+            emailAddress: accountDetails.email
+        }
+    });
+
+    if (existingAccount) {
+        // Account already exists, redirect with error message
+        return NextResponse.redirect(
+            new URL('/mail?error=account_already_exists', req.url)
+        );
+    }
+
     await db.account.upsert({
         where: {
             id: token.accountId.toString(),
@@ -65,5 +81,6 @@ export const GET = async (req: NextRequest) => {
             console.error('failed to trigger initial sync', error);
         })
     )
-    return NextResponse.redirect(new URL('/mail', req.url));
+    
+    return NextResponse.redirect(new URL('/mail?success=account_linked', req.url));
 }
