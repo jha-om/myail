@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AccountSwitcher from "@/components/account-switcher";
 import Sidebar from "./sidebar";
+import ThreadList from "./thread-list";
 
 type mailProps = {
     defaultLayout: number[] | undefined,
@@ -25,7 +25,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapse);
     const [tab, setTab] = useState<string>('inbox');
     const searchParams = useSearchParams();
-    
+
     useEffect(() => {
         const error = searchParams.get('error');
         const success = searchParams.get('success');
@@ -59,8 +59,8 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
 
     return (
         <TooltipProvider delayDuration={0}>
-            <ResizablePanelGroup 
-                direction="horizontal" 
+            <ResizablePanelGroup
+                direction="horizontal"
                 className="h-screen max-h-screen w-full overflow-hidden"
             >
                 {/* Sidebar Panel */}
@@ -97,10 +97,10 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                         <div className="flex-1" />
 
                         {/* Ask AI Button */}
-                        <div className="border-t p-4">
+                        <div className="border-t flex items-center justify-center p-1.5">
                             <button className={cn(
-                                "w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium",
-                                isCollapsed ? "h-10 text-xs" : "h-10 text-sm"
+                                "w-full bg-primary rounded-lg text-primary-foreground hover:bg-primary/90 transition-colors font-medium",
+                                isCollapsed ? "h-10 w-10 rounded-full text-xs" : "h-10 text-sm"
                             )}>
                                 {isCollapsed ? "AI" : "Ask AI"}
                             </button>
@@ -141,18 +141,20 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
 
                         {/* Email List Content */}
                         <TabsContent value="inbox" className="flex-1 overflow-auto m-0">
-                            <div className="p-4">
+                            {/* <div className="p-4">
                                 <p className="text-muted-foreground text-sm text-center py-8">
                                     No emails in inbox
                                 </p>
-                            </div>
+                            </div> */}
+                            <ThreadList />
                         </TabsContent>
                         <TabsContent value="done" className="flex-1 overflow-auto m-0">
-                            <div className="p-4">
+                            {/* <div className="p-4">
                                 <p className="text-muted-foreground text-sm text-center py-8">
-                                    No completed emails
+                                No completed emails
                                 </p>
-                            </div>
+                                </div> */}
+                            <ThreadList />
                         </TabsContent>
                     </Tabs>
                 </ResizablePanel>
