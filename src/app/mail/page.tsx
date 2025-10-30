@@ -6,6 +6,8 @@ const MailComponent = dynamic(() => {
 
 const Mail = () => {
     return (
+        // TODO: add dark theme
+        
         <div className="h-screen w-full overflow-hidden">
             <MailComponent defaultLayout={[20, 32, 48]} navCollapsedSize={3} defaultCollapse={false} />
         </div>

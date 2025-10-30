@@ -1,20 +1,21 @@
 "use client"
 
+import ThreadDisplayUpper from "@/app/mail/_components/thread-display-upper";
+import AccountSwitcher from "@/components/account-switcher";
 import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AccountSwitcher from "@/components/account-switcher";
 import Sidebar from "./sidebar";
 import ThreadList from "./thread-list";
+import ThreadDisplay from "./thread-display";
 
 type mailProps = {
     defaultLayout: number[] | undefined,
@@ -25,6 +26,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapse);
     const [tab, setTab] = useState<string>('inbox');
     const searchParams = useSearchParams();
+
 
     useEffect(() => {
         const error = searchParams.get('error');
@@ -135,7 +137,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                             <input
                                 type="search"
                                 placeholder="Search emails..."
-                                className="w-full px-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                className="w-full px-4 py-2 rounded-md border bg-background text-sm focus:outline-none"
                             />
                         </div>
 
@@ -168,13 +170,9 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                 >
                     <div className="flex flex-col h-full">
                         <div className="flex items-center justify-between h-[52px] px-6 border-b">
-                            <h2 className="text-lg font-semibold">Thread Details</h2>
+                            <ThreadDisplayUpper />
                         </div>
-                        <div className="flex-1 overflow-auto p-6">
-                            <p className="text-muted-foreground text-sm text-center py-8">
-                                Select an email to view details
-                            </p>
-                        </div>
+                        <ThreadDisplay />
                     </div>
                 </ResizablePanel>
             </ResizablePanelGroup>

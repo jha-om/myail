@@ -1,11 +1,15 @@
 import { api } from "@/trpc/react"
 import { useEffect, useState } from "react";
+import { atom, useAtom } from "jotai";
+
+export const threadIdAtom = atom<string | null>(null);
 
 const useThread = () => {
     const { data: accounts } = api.account.getAccounts.useQuery();
     const [accountId, setAccountId] = useState<string>('');
     const [tab, setTab] = useState<string>('inbox');
     const [done, setDone] = useState<boolean>(false);
+    const [threadId, setThreadId] = useAtom(threadIdAtom);
 
     useEffect(() => {
         const storedAccountId = localStorage.getItem('accountId');
@@ -42,7 +46,9 @@ const useThread = () => {
         isFetching,
         refetch,
         accountId,
-        account: accounts?.find(a => a.id === accountId)
+        account: accounts?.find(a => a.id === accountId),
+        threadId,
+        setThreadId,
     }
 }
 
