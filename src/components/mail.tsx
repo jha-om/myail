@@ -54,6 +54,19 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
         }
     }, []);
 
+    useEffect(() => {
+        const handleTabChange = (event: CustomEvent<{ tab: string }>) => {
+            console.log(event.detail.tab);
+            setTab(event.detail.tab);
+        }
+
+        window.addEventListener('tab-change', handleTabChange as EventListener);
+
+        return () => {
+            window.removeEventListener('tab-change', handleTabChange as EventListener)
+        }
+    }, []);
+
     const handleTabChange = (newTab: string) => {
         setTab(newTab);
         localStorage.setItem('myail-tab', newTab);

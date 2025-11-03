@@ -3,9 +3,10 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
-import { TRPCReactProvider } from "@/trpc/react";
-import { ClerkProvider } from "@clerk/nextjs"
+import KBar from "@/components/kbar";
 import { Toaster } from "@/components/ui/sonner";
+import { TRPCReactProvider } from "@/trpc/react";
+import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
   title: "myail",
@@ -25,7 +26,11 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
         <body className="antialiased overflow-hidden">
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>
+            <KBar>
+              {children}
+            </KBar>
+          </TRPCReactProvider>
           <Toaster position="bottom-right" />
         </body>
       </html>
