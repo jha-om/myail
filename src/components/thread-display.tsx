@@ -1,9 +1,10 @@
 "use client"
 
-import useThread from "@/hooks/use-thread";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { format } from "date-fns";
 import EmailDisplay from "@/app/mail/_components/email-display";
+import ReplyBox from "@/app/mail/_components/reply-box";
+import useThread from "@/hooks/use-thread";
+import { format } from "date-fns";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const ThreadDisplay = () => {
     const { threadId, threads } = useThread();
@@ -47,13 +48,9 @@ const ThreadDisplay = () => {
                             ))}
                         </div>
                     </div>
-
-                    {/* Reply Box - Fixed at Bottom
-                    <div className="shrink-0 border-t p-4 bg-background">
-                        <div className="text-sm text-muted-foreground">
-                            Reply box
-                        </div>
-                    </div> */}
+                    <div className="shrink-0 border-t bg-background px-2">
+                        <ReplyBox />
+                    </div>
                 </>
             ) : (
                 <div className="flex-1 overflow-auto p-6">

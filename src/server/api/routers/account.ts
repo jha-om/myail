@@ -79,7 +79,7 @@ export const accountRouter = createTRPCRouter({
         filter.done = {
             equals: input.done
         };
-        return await ctx.db.thread.findMany({
+        const threads = await ctx.db.thread.findMany({
             where: {
                 accountId: account.id,
                 ...filter
@@ -104,6 +104,35 @@ export const accountRouter = createTRPCRouter({
             take: 15,
             orderBy: {
                 lastMessageDate: 'desc'
+            }
+        })
+        return threads;
+    }),
+    getSuggestions: privateProcedure.input(z.object({
+        accountId: z.string().min(1, "Account ID is required"),
+    })).query(async ({ ctx, input }) => {
+        // Add better error handling
+        if (!input.accountId) {
+            throw new Error("Account ID is required");
+        }
+        
+        const account = await authorizeAccountAccess(input.accountId, ctx.auth.userId);
+        
+        if (!account) {
+            throw new Error("Unauthorized: Invalid account");
+        }
+        
+        return await ctx.db.emailAddress.findMany({
+            where: {
+                accountId: account.id,
+            },
+            select: {
+                address: true,
+                name: true,
+            },
+            take: 50, // Limit results
+            orderBy: {
+                name: 'asc'
             }
         })
     })
