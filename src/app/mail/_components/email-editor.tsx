@@ -8,6 +8,7 @@ import { Send } from "lucide-react";
 import { useState } from "react";
 import EditorMenubar from "./editor-menubar";
 import TagInput from "./tag-input";
+import AICompose from "./ai-compose";
 
 type Props = {
     subject: string,
@@ -81,7 +82,7 @@ const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSen
                             placeholder="Add Recipients"
                             value={ccValues}
                         />
-                        <Input id="subject" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+                        <Input className="focus:outline-none focus:border-none" id="subject" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
                     </>
                 )}
 
@@ -94,6 +95,10 @@ const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSen
                             to {to.join(',')}
                         </span>
                     </div>
+
+                    <div className="w-px h-6 bg-border mx-1" />
+
+                    <AICompose  />
                 </div>
             </div>
 

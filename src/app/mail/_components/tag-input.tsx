@@ -19,11 +19,10 @@ const TagInput = ({ placeholder, label, onChange, value }: Props) => {
     const { accountId } = useThread();
     const [inputValue, setInputValue] = useState<string>('');
     
-    // Only call API if accountId exists
     const { data: suggestionsData } = api.account.getSuggestions.useQuery({
         accountId: accountId || ''
     }, {
-        enabled: !!accountId, // Only run query if accountId exists
+        enabled: !!accountId,
     });
     
     const animatedComponents = makeAnimated();
@@ -43,7 +42,6 @@ const TagInput = ({ placeholder, label, onChange, value }: Props) => {
         value: suggestionData.address,
     })) ?? []
 
-    // Auto-scroll to bottom when value changes
     useEffect(() => {
         if (value && value.length > 0) {
             setTimeout(() => {
@@ -88,13 +86,13 @@ const TagInput = ({ placeholder, label, onChange, value }: Props) => {
                         return '!max-h-[120px] !overflow-y-auto !py-1'
                     },
                     multiValue: () => {
-                        return '!rounded-full !m-1'
+                        return '!rounded-full'
                     },
                     multiValueLabel: () => {
                         return '!rounded-full !text-xs !px-2'
                     },
                     multiValueRemove: () => {
-                        return 'hover:!text-destructive-foreground hover:!bg-destructive/10 !rounded-full'
+                        return 'hover:!text-destructive-foreground hover:!bg-transparent'
                     }
                 }}
                 styles={{

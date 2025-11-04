@@ -56,7 +56,6 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
 
     useEffect(() => {
         const handleTabChange = (event: CustomEvent<{ tab: string }>) => {
-            console.log(event.detail.tab);
             setTab(event.detail.tab);
         }
 

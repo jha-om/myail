@@ -14,7 +14,6 @@ export default function KBar({ children }: { children: React.ReactNode }) {
         });
 
         window.dispatchEvent(event);
-        console.log("kbar: dispatched tab-change event for: ", tab);
     }
 
     const actions: Action[] = [
