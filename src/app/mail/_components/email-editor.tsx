@@ -1,14 +1,15 @@
 "use client"
 
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { Text } from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Send } from "lucide-react";
+import { ChevronDown, ChevronUp, Send } from "lucide-react";
 import { useState } from "react";
+import AICompose from "./ai-compose";
 import EditorMenubar from "./editor-menubar";
 import TagInput from "./tag-input";
-import AICompose from "./ai-compose";
 
 type Props = {
     subject: string,
@@ -63,13 +64,21 @@ const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSen
         editable: true,
     })
 
+    const handleOnGenerate = (token: string) => {
+        editor?.commands.insertContent(token);
+    }
     return (
         <div>
             {editor && <EditorMenubar editor={editor} />}
 
             <div className="p-4 pb-0 space-y-2">
-                {expanded && (
-                    <>
+                <div 
+                    className={cn(
+                        "grid transition-all duration-300 ease-in-out",
+                        expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                    )}
+                >
+                    <div className="overflow-hidden space-y-2">
                         <TagInput
                             label="To"
                             onChange={setToValues}
@@ -82,23 +91,37 @@ const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSen
                             placeholder="Add Recipients"
                             value={ccValues}
                         />
-                        <Input className="focus:outline-none focus:border-none" id="subject" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
-                    </>
-                )}
+                        <Input 
+                            className="focus:outline-none focus:border-none" 
+                            id="subject" 
+                            placeholder="Subject" 
+                            value={subject} 
+                            onChange={(e) => setSubject(e.target.value)} 
+                        />
+                    </div>
+                </div>
 
                 <div className="flex items-center gap-2">
-                    <div className="cursor-pointer" onClick={() => setExpanded(!expanded)}>
+                    <button 
+                        className="cursor-pointer flex items-center gap-2 hover:opacity-70 transition-opacity"
+                        onClick={() => setExpanded(!expanded)}
+                    >
                         <span className="text-green-600 font-medium">
                             Draft {" "}
                         </span>
-                        <span>
-                            to {to.join(',')}
+                        <span className="text-sm">
+                            to {to.join(', ')}
                         </span>
-                    </div>
+                        {expanded ? (
+                            <ChevronUp className="h-4 w-4 transition-transform" />
+                        ) : (
+                            <ChevronDown className="h-4 w-4 transition-transform" />
+                        )}
+                    </button>
 
                     <div className="w-px h-6 bg-border mx-1" />
 
-                    <AICompose  />
+                    <AICompose isComposing={defaultExpanded} onGenerate={handleOnGenerate} />
                 </div>
             </div>
 
