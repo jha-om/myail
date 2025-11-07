@@ -10,7 +10,9 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea";
+import useThread from "@/hooks/use-thread";
 import { generate } from "@/lib/action";
+import { turndown } from "@/lib/turndown";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { BotIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -24,11 +26,28 @@ const AICompose = ({ isComposing, onGenerate }: Props) => {
     const [open, setOpen] = useState(false);
     const [prompt, setPrompt] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
+    const { threads, threadId, account } = useThread();
+    const thread = threads?.find(t => t.id === threadId);
 
     const myailAIGenerate = async () => {
         setIsGenerating(true);
         try {
-            const { output } = await generate('', prompt);
+            let context = '';
+
+            if (!isComposing) {
+                for (const email of thread?.emails ?? []) {
+                    const content = `
+                        Subject: ${email.subject},
+                        From: ${email.from.address},
+                        Sent: ${new Date(email.sentAt).toLocaleString()}
+                        Body: ${turndown.turndown(email.body ?? email.bodySnippet ?? "")}
+                    `
+                    context += content;
+                }
+            }
+            context += `My name is ${account?.name} and my mail is ${account?.emailAddress}`
+            
+            const { output } = await generate(context, prompt);
             for await (const token of readStreamableValue(output)) {
                 if (token) {
                     console.log(token);
