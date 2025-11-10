@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { SyncUpdatedResponse, SyncResponse, EmailMessage } from "@/types";
+import type { SyncUpdatedResponse, SyncResponse, EmailMessage, EmailAddress } from "@/types";
 
 export const AURINKO_URL = "https://api.aurinko.io";
 
@@ -82,6 +82,53 @@ export class Account {
             } else {
                 console.error('error during sync: ', error)
             }
+        }
+    }
+
+    async sendEmail({
+        from, subject, body, inReplyTo, threadId, to, references, cc, bcc, replyTo
+    }: {
+        from: EmailAddress,
+        subject: string,
+        body: string,
+        inReplyTo: string,
+        to: EmailAddress[],
+        threadId?: string,
+        references: string,
+        cc?: EmailAddress[],
+        bcc?: EmailAddress[],
+        replyTo?: EmailAddress,
+    }) {
+        try {
+            const response = await axios.post<{ messageId: string }>('https://api.aurinko.io/v1/email/messages', {
+                from,
+                subject,
+                body,
+                inReplyTo,
+                to,
+                references,
+                cc,
+                threadId,
+                bcc,
+                replyTo: [replyTo]
+            }, {
+                params: {
+                    returnIds: true,
+                },
+                headers: {
+                    Authorization: `Bearer ${this.token}`
+                }
+            })
+
+            console.log("email sent", response.data);
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error("error during sync: (axios issue) ", JSON.stringify(error.response?.data, null, 2));
+            } else {
+                console.error('error during sync: ', error)
+            }
+            throw error;
         }
     }
 }

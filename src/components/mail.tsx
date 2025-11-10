@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import Sidebar from "./sidebar";
 import ThreadList from "./thread-list";
 import ThreadDisplay from "./thread-display";
+import { UserButton } from "@clerk/nextjs";
+import ComposeButton from "./compose-button";
 
 type mailProps = {
     defaultLayout: number[] | undefined,
@@ -107,17 +109,95 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                             onTabChange={handleTabChange}
                         />
 
+                        <div className="w-auto h-px border border-gray-400/15 ml-2 mr-2" />
+
                         {/* Spacer */}
                         <div className="flex-1" />
 
-                        {/* Ask AI Button */}
-                        <div className="border-t flex items-center justify-center p-1.5">
-                            <button className={cn(
-                                "w-full bg-primary rounded-lg text-primary-foreground hover:bg-primary/90 transition-colors font-medium",
-                                isCollapsed ? "h-10 w-10 rounded-full text-xs" : "h-10 text-sm"
+                        <div className={cn(
+                            "p-3 space-y-3 bg-linear-to-t from-background/80 to-transparent backdrop-blur-sm",
+                            isCollapsed && "p-2"
+                        )}>
+                            {/* User Profile & Compose Container */}
+                            <div className={cn(
+                                "rounded-xl bg-card/50 backdrop-blur-md border border-border/50 shadow-lg shadow-black/5 dark:shadow-black/20 transition-all duration-300 hover:shadow-xl hover:border-border",
+                                isCollapsed ? "p-2 flex flex-col gap-2 items-center" : "p-3"
                             )}>
-                                {isCollapsed ? "AI" : "Ask AI"}
-                            </button>
+                                {/* Expanded State - Same Row */}
+                                {!isCollapsed && (
+                                    <div className="flex items-center gap-3">
+                                        {/* User Info Section */}
+                                        <div className="relative group">
+                                            <div className="absolute inset-0 rounded-full bg-linear-to-br from-primary/20 to-primary/5 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="relative ring-2 ring-background rounded-full">
+                                                <UserButton
+                                                    appearance={{
+                                                        elements: {
+                                                            avatarBox: "w-9 h-9"
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Compose Button - Flex 1 to take remaining space */}
+                                        <div className="flex-1 relative group">
+                                            <div className="absolute inset-0 rounded-lg bg-linear-to-r from-primary/10 via-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
+                                            <div className="relative">
+                                                <ComposeButton isCollapsed={false} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Collapsed State - Two Rows */}
+                                {isCollapsed && (
+                                    <>
+                                        {/* First Row: Compose Button */}
+                                        <div className="relative group w-full">
+                                            {/* <div className="absolute inset-0 rounded-lg bg-linear-to-r from-primary/10 via-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity blur-xl" /> */}
+                                            <div className="relative">
+                                                <ComposeButton isCollapsed={true} />
+                                            </div>
+                                        </div>
+
+                                        {/* Second Row: User Profile */}
+                                        <div className="relative group">
+                                            <div className="absolute inset-0 rounded-full bg-linear-to-br from-primary/20 to-primary/5 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="relative ring-2 ring-background rounded-full">
+                                                <UserButton
+                                                    appearance={{
+                                                        elements: {
+                                                            avatarBox: "w-9 h-9"
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Ask AI Button - Enhanced */}
+                        <div className="border-t bg-background/50 backdrop-blur-sm">
+                            <div className="p-3">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-linear-to-r from-primary/20 via-primary/30 to-primary/20 rounded-lg blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <button className={cn(
+                                        "relative w-full bg-linear-to-r from-primary to-primary/90 rounded-lg text-primary-foreground hover:from-primary/90 hover:to-primary/80 transition-all duration-300 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
+                                        isCollapsed ? "h-10 w-10 rounded-full text-xs mx-auto flex items-center justify-center" : "h-11 text-sm flex items-center justify-center gap-2"
+                                    )}>
+                                        {isCollapsed ? (
+                                            <span className="text-xs">AI</span>
+                                        ) : (
+                                            <>
+                                                <span>Ask AI</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </ResizablePanel>

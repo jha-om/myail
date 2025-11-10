@@ -75,11 +75,9 @@ const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSen
 
     const aiGenerate = async (editorInstance: typeof editor) => {
         if (isGenerating || !editorInstance) {
-            console.log("Cannot generate:", { isGenerating, hasEditor: !!editorInstance });
             return;
         }
         
-        console.log("AI generate function is called, editor exists:", !!editorInstance);
         setIsGenerating(true);
         
         try {
