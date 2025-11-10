@@ -10,6 +10,10 @@ import { useState } from "react";
 import AICompose from "./ai-compose";
 import EditorMenubar from "./editor-menubar";
 import TagInput from "./tag-input";
+import { generate } from "@/lib/action";
+import { readStreamableValue } from "@ai-sdk/rsc";
+import useThread from "@/hooks/use-thread";
+import { turndown } from "@/lib/turndown";
 
 type Props = {
     subject: string,
@@ -33,18 +37,23 @@ type Props = {
 const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSend, isSending, setCcValues, setToValues, to, toValues }: Props) => {
     const [value, setValue] = useState<string>('')
     const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
-
+    const [isGenerating, setIsGenerating] = useState(false);
+    
+    const { threads, threadId, account } = useThread();
+    const thread = threads?.find(t => t.id === threadId);
 
     const customText = Text.extend({
         addKeyboardShortcuts() {
             return {
-                'Meta-j': () => {
-                    console.log("meta-j");
+                'Mod-Space': ({ editor }) => {
+                    // Access editor from the shortcut context
+                    void aiGenerate(editor);
                     return true;
                 }
             }
         }
     })
+    
     const editor = useEditor({
         autofocus: false,
         extensions: [StarterKit.configure({
@@ -64,9 +73,81 @@ const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSen
         editable: true,
     })
 
-    const handleOnGenerate = (token: string) => {
-        editor?.commands.insertContent(token);
+    const aiGenerate = async (editorInstance: typeof editor) => {
+        if (isGenerating || !editorInstance) {
+            console.log("Cannot generate:", { isGenerating, hasEditor: !!editorInstance });
+            return;
+        }
+        
+        console.log("AI generate function is called, editor exists:", !!editorInstance);
+        setIsGenerating(true);
+        
+        try {
+            // Build context from the email thread
+            let context = '';
+            
+            // Add thread context if available (limit to last 3 emails)
+            if (thread && thread.emails.length > 0) {
+                const recentEmails = thread.emails.slice(-3);
+                context += '=== EMAIL THREAD HISTORY ===\n';
+                for (const email of recentEmails) {
+                    const emailBody = turndown.turndown(email.body ?? email.bodySnippet ?? "");
+                    const content = `
+From: ${email.from.name ?? email.from.address}
+Sent: ${new Date(email.sentAt).toLocaleString()}
+Subject: ${email.subject}
+Body: ${emailBody.slice(0, 500)}${emailBody.length > 500 ? '...' : ''}
+---
+`;
+                    context += content;
+                }
+            }
+            
+            // Add current email context
+            context += '\n=== CURRENT EMAIL DETAILS ===\n';
+            context += `I am: ${account?.name ?? 'User'} (${account?.emailAddress})\n`;
+            context += `Sending to: ${to.join(', ')}\n`;
+            if (ccValues.length > 0) {
+                context += `CC: ${ccValues.map(c => c.value).join(', ')}\n`;
+            }
+            if (subject) {
+                context += `Subject: ${subject}\n`;
+            }
+            
+            // Add current draft content
+            const currentText = editorInstance.getText();
+
+            // Create a smart prompt based on current state
+            let prompt = '';
+            const textLength = currentText.trim().length;
+            
+            if (textLength <= 0) {
+                prompt = 'Write a natural email opening. Start directly with content (e.g., "Hi [name]," or appropriate greeting). Keep it brief and relevant. Continue this email naturally.Add 1 - 2 sentences that flow from what I\'ve written. Be specific and relevant. Don\'t repeat existing text.';
+            } else {
+                prompt = `Write a brief, natural closing for this email (1-2 sentences) with account name ${account?.name}. Then add appropriate sign-off.`;
+            }
+
+            const { output } = await generate(context, prompt);
+            
+            for await (const token of readStreamableValue(output)) {
+                if (token && editorInstance) {
+                    editorInstance.commands.insertContent(token as string);
+                }
+            }
+
+        } catch (error) {
+            console.error('Error generating email:', error);
+        } finally {
+            setIsGenerating(false);
+        }
     }
+    
+    const handleOnGenerate = (token: string) => {
+        if (editor) {
+            editor.commands.insertContent(token);
+        }
+    }
+    
     return (
         <div>
             {editor && <EditorMenubar editor={editor} />}
@@ -132,9 +213,10 @@ const EmailEditor = ({ subject, setSubject, ccValues, defaultExpanded, handleSen
                 <span className="text-sm">
                     <span className="font-bold">Tip: </span>Press {" "}
                     <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">
-                        Cmd/Ctrl + J
+                        Cmd/Ctrl + Space
                     </kbd> {" "}
                     for AI autocomplete
+                    {isGenerating && <span className="ml-2 text-muted-foreground">(Generating...)</span>}
                 </span>
                 <div className="border border-black/25 bg-transparent p-1.5 rounded-lg">
                     <button
