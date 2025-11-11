@@ -1,5 +1,7 @@
+import { Account } from "@/lib/account";
 import { createTRPCRouter, privateProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
+import { emailAddressSchema } from "@/types";
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
@@ -115,13 +117,13 @@ export const accountRouter = createTRPCRouter({
         if (!input.accountId) {
             throw new Error("Account ID is required");
         }
-        
+
         const account = await authorizeAccountAccess(input.accountId, ctx.auth.userId);
-        
+
         if (!account) {
             throw new Error("Unauthorized: Invalid account");
         }
-        
+
         return await ctx.db.emailAddress.findMany({
             where: {
                 accountId: account.id,
@@ -141,7 +143,7 @@ export const accountRouter = createTRPCRouter({
         threadId: z.string(),
     })).query(async ({ ctx, input }) => {
         const account = await authorizeAccountAccess(input.accountId, ctx.auth.userId);
-        
+
         if (!account) {
             throw new Error("Unauthorized: Invalid account");
         }
@@ -185,6 +187,49 @@ export const accountRouter = createTRPCRouter({
                 address: account.emailAddress,
             },
             id: lastExternalEmail.internetMessageId
+        }
+    }),
+    sendEmail: privateProcedure.input(z.object({
+        accountId: z.string(),
+        body: z.string(),
+        subject: z.string(),
+        from: emailAddressSchema,
+        cc: z.array(emailAddressSchema).optional(),
+        bcc: z.array(emailAddressSchema).optional(),
+        to: z.array(emailAddressSchema),
+        replyTo: emailAddressSchema,
+        inReplyTo: z.string().optional(),
+        threadId: z.string().optional(),
+    })).mutation(async ({ ctx, input }) => {
+        const account = await authorizeAccountAccess(input.accountId, ctx.auth.userId);
+
+        if (!account?.accessToken) {
+            throw new Error("Account not found or missing access token");
+        }
+
+        const accountInstance = new Account(account.accessToken);
+
+        try {
+            // Send email via Aurinko API
+            const response = await accountInstance.sendEmail({
+                from: input.from,
+                to: input.to,
+                cc: input.cc,
+                bcc: input.bcc,
+                replyTo: input.replyTo,
+                subject: input.subject,
+                body: input.body,
+                inReplyTo: input.inReplyTo,
+                threadId: input.threadId,
+            });
+
+            return response;
+        } catch (error) {
+            // Handle authentication errors specifically
+            if (error instanceof Error && error.message === "AUTH_EXPIRED") {
+                throw new Error("AUTH_EXPIRED");
+            }
+            throw error;
         }
     })
 })

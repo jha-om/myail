@@ -91,16 +91,16 @@ export class Account {
         from: EmailAddress,
         subject: string,
         body: string,
-        inReplyTo: string,
+        inReplyTo?: string,
         to: EmailAddress[],
         threadId?: string,
-        references: string,
+        references?: string,
         cc?: EmailAddress[],
         bcc?: EmailAddress[],
         replyTo?: EmailAddress,
     }) {
         try {
-            const response = await axios.post<{ messageId: string }>('https://api.aurinko.io/v1/email/messages', {
+            const response = await axios.post<{ messageId: string }>(`${AURINKO_URL}/v1/email/messages`, {
                 from,
                 subject,
                 body,
@@ -124,9 +124,20 @@ export class Account {
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                console.error("error during sync: (axios issue) ", JSON.stringify(error.response?.data, null, 2));
+                // Handle 401 (Unauthorized) specifically
+                if (error.response?.status === 401) {
+                    console.error("Authentication failed - token expired");
+                    throw new Error("AUTH_EXPIRED");
+                }
+                
+                console.error("Error sending email (Aurinko API):", {
+                    status: error.response?.status,
+                    statusText: error.response?.statusText,
+                    data: error.response?.data as unknown,
+                    headers: error.response?.headers
+                });
             } else {
-                console.error('error during sync: ', error)
+                console.error('Error sending email:', error)
             }
             throw error;
         }

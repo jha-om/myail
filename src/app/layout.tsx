@@ -29,9 +29,9 @@ export default function RootLayout({
           <TRPCReactProvider>
             <KBar>
               {children}
+              <Toaster position="bottom-right" />
             </KBar>
           </TRPCReactProvider>
-          <Toaster position="bottom-right" />
         </body>
       </html>
     </ClerkProvider>
