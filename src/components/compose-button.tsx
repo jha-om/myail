@@ -12,14 +12,54 @@ import { cn } from "@/lib/utils"
 import { PencilIcon } from "lucide-react"
 import { useState } from "react"
 import { Button } from "./ui/button"
+import useThread from "@/hooks/use-thread"
+import { api } from "@/trpc/react"
+import { toast } from "sonner"
 
 const ComposeButton = ({ isCollapsed }: { isCollapsed: boolean }) => {
     const [subject, setSubject] = useState<string>('')
     const [toValues, setToValues] = useState<{ label: string, value: string }[]>([])
     const [ccValues, setCcValues] = useState<{ label: string, value: string }[]>([]);
-    
-    const handleSend = async () => {
-        console.log('handle send button in compose button');
+
+    const { account } = useThread();
+
+    const sendEmail = api.account.sendEmail.useMutation();
+
+    const handleSend = async (value: string) => {
+        if (!account) {
+            return;
+        }
+        sendEmail.mutate({
+            accountId: account.id,
+            threadId: undefined,
+            body: value,
+            from: {
+                name: account.name ?? "Me",
+                address: account.emailAddress ?? "me@example.com"
+            },
+            to: toValues.map(to => ({
+                name: to.value,
+                address: to.value,
+            })),
+            cc: ccValues.map(cc => ({
+                name: cc.value,
+                address: cc.value,
+            })),
+            replyTo: {
+                name: account.name ?? "Me",
+                address: account.emailAddress ?? "me@example.com",
+            },
+            subject: subject,
+            inReplyTo: undefined,
+        }, {
+            onSuccess: () => {
+                toast.success("Email sent");
+            },
+            onError: (error) => {
+                console.log("error: in compose email", error);
+                toast.error('Error sending email');
+            }
+        })
     }
     
     return (
@@ -57,7 +97,7 @@ const ComposeButton = ({ isCollapsed }: { isCollapsed: boolean }) => {
                     handleSend={handleSend}
                     defaultExpanded={true}
 
-                    isSending={false}
+                    isSending={sendEmail.isPending}
                     to={toValues.map(to => to.value)}
                 />
             </DrawerContent>

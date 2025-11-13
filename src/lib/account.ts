@@ -1,5 +1,7 @@
 import axios from "axios";
 import type { SyncUpdatedResponse, SyncResponse, EmailMessage, EmailAddress } from "@/types";
+import { db } from "@/server/db";
+import { syncEmailsToDatabase } from "./sync-to-db";
 
 export const AURINKO_URL = "https://api.aurinko.io";
 
@@ -120,7 +122,6 @@ export class Account {
                 }
             })
 
-            console.log("email sent", response.data);
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -129,7 +130,7 @@ export class Account {
                     console.error("Authentication failed - token expired");
                     throw new Error("AUTH_EXPIRED");
                 }
-                
+
                 console.error("Error sending email (Aurinko API):", {
                     status: error.response?.status,
                     statusText: error.response?.statusText,
@@ -140,6 +141,59 @@ export class Account {
                 console.error('Error sending email:', error)
             }
             throw error;
+        }
+    }
+
+    async syncEmails() {
+        const account = await db.account.findUnique({
+            where: {
+                accessToken: this.token,
+            }
+        });
+        if (!account) {
+            throw new Error('Account not found');
+        }
+        if (!account.nextDeltaToken) {
+            throw new Error('Account not ready for sync');
+        }
+        let response = await this.getUpdatedEmails({
+            deltaToken: account.nextDeltaToken,
+        });
+        let storedDeltaToken = account.nextDeltaToken;
+        let allEmails: EmailMessage[] = response.records;
+
+        if (response.nextDeltaToken) {
+            storedDeltaToken = response.nextDeltaToken;
+        }
+
+        try {
+            await syncEmailsToDatabase(allEmails, account.id);
+        } catch (error) {
+            console.error('Error during sync: ', error);
+        }
+        await db.account.update({
+            where: {
+                id: account.id,
+            },
+            data: {
+                nextDeltaToken: storedDeltaToken,
+            }
+        })
+
+        while (response.nextPageToken) {
+            response = await this.getUpdatedEmails({
+                pageToken: response.nextPageToken,
+            });
+            allEmails = allEmails.concat(response.records);
+
+            if (response.nextDeltaToken) {
+                storedDeltaToken = response.nextDeltaToken;
+            }
+        }
+
+        return {
+            emails: allEmails,
+            deltaToken: storedDeltaToken,
         }
     }
 }

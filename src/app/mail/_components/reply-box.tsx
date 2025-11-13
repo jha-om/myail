@@ -63,6 +63,7 @@ const ReplyComponent = ({ replyDetails }: { replyDetails: RouterOutputs['account
     }, [threadId, replyDetails])
 
     const sendEmail = api.account.sendEmail.useMutation();
+    
     const handleSend = async (value: string) => {
         if (!replyDetails) { 
             return;
