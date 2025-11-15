@@ -8,13 +8,55 @@ import { toast } from "sonner"
 
 const ReplyBox = () => {
     const { threadId, accountId } = useThread();
-    const { data: replyDetails } = api.account.getReplyDetails.useQuery({
+
+    const [currentTab, setCurrentTab] = useState<string>('inbox')
+
+    useEffect(() => {
+        const storedTab = localStorage.getItem('myail-tab');
+        if (storedTab) {
+            setCurrentTab(storedTab);
+        }
+
+        const handleTabChange = (event: CustomEvent<{ tab: string }>) => {
+            setCurrentTab(event.detail.tab);
+        }
+
+        window.addEventListener('tab-change', handleTabChange as EventListener);
+
+        return () => {
+            window.removeEventListener('tab-change', handleTabChange as EventListener);
+        }
+    }, []);
+
+    const { data: replyDetails, isFetching } = api.account.getReplyDetails.useQuery({
         accountId,
         threadId: threadId ?? "",
     }, {
-        enabled: !!threadId && !!accountId,
+        enabled: !!threadId && !!accountId && currentTab !== 'sent',
     })
+
+    if (currentTab === 'sent') {
+        return (
+            <div className="p-4 text-center border-t bg-muted/30">
+                <p className="text-sm text-muted-foreground">
+                    This is a sent email. You cannot reply to your own sent messages.
+                </p>
+            </div>
+        );
+    }
     
+    if (!threadId || !accountId) {
+        return null
+    }
+
+    if (isFetching) {
+        return (
+            <div className="flex items-center justify-center p-4">
+                <div className="text-muted-foreground">Loading reply details...</div>
+            </div>
+        );
+    }
+
     if (!replyDetails) {
         return (
             <div className="p-4 text-center text-sm text-muted-foreground">
@@ -22,13 +64,13 @@ const ReplyBox = () => {
             </div>
         );
     }
-    
+
     return (
         <ReplyComponent replyDetails={replyDetails} />
     )
 }
 
-const ReplyComponent = ({ replyDetails }: { replyDetails: RouterOutputs['account']['getReplyDetails'] } ) => {
+const ReplyComponent = ({ replyDetails }: { replyDetails: RouterOutputs['account']['getReplyDetails'] }) => {
     const { threadId, accountId } = useThread();
     const [subject, setSubject] = useState(replyDetails.subject.startsWith("Re:") ? replyDetails.subject : `Re: ${replyDetails.subject}`)
     const [toValues, setToValues] = useState<{ label: string, value: string }[]>(replyDetails.to.map(to => ({
@@ -63,9 +105,9 @@ const ReplyComponent = ({ replyDetails }: { replyDetails: RouterOutputs['account
     }, [threadId, replyDetails])
 
     const sendEmail = api.account.sendEmail.useMutation();
-    
+
     const handleSend = async (value: string) => {
-        if (!replyDetails) { 
+        if (!replyDetails) {
             return;
         }
         sendEmail.mutate({

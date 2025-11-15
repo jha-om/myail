@@ -93,10 +93,10 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                         isCollapsed && "min-w-[50px]"
                     )}
                 >
-                    <div className="flex flex-col h-full">
+                    <div className="flex flex-col h-full bg-linear-to-b from-background to-muted/20">
                         {/* Account Switcher - Match height with email panel header */}
                         <div className={cn(
-                            "flex items-center h-[52px] border-b",
+                            "flex items-center h-[52px] border-b bg-background/50 backdrop-blur-sm",
                             isCollapsed ? "justify-center" : "px-6 justify-center"
                         )}>
                             <AccountSwitcher isCollapsed={isCollapsed} />
@@ -109,11 +109,12 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                             onTabChange={handleTabChange}
                         />
 
-                        <div className="w-auto h-px border border-gray-400/15 ml-2 mr-2" />
+                        <div className="w-auto h-px bg-linear-to-r from-transparent via-border to-transparent mx-4" />
 
                         {/* Spacer */}
                         <div className="flex-1" />
 
+                        {/* User Actions Section - Enhanced Design */}
                         <div className={cn(
                             "p-3 space-y-3 bg-linear-to-t from-background/80 to-transparent backdrop-blur-sm",
                             isCollapsed && "p-2"
@@ -155,7 +156,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                                     <>
                                         {/* First Row: Compose Button */}
                                         <div className="relative group w-full">
-                                            {/* <div className="absolute inset-0 rounded-lg bg-linear-to-r from-primary/10 via-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity blur-xl" /> */}
+                                            <div className="absolute inset-0 rounded-lg bg-linear-to-r from-primary/10 via-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
                                             <div className="relative">
                                                 <ComposeButton isCollapsed={true} />
                                             </div>
@@ -210,47 +211,72 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                     minSize={30}
                     maxSize={50}
                 >
-                    <Tabs value={tab} onValueChange={handleTabChange} className="flex flex-col h-full">
-                        {/* Header - Match height with sidebar */}
-                        <div className="flex items-center justify-between h-[52px] px-6 border-b">
-                            <h1 className="text-xl font-bold capitalize">{tab}</h1>
-                            <TabsList>
-                                <TabsTrigger value="inbox">
+                    {/* Show Tabs only for inbox (inbox/done toggle) */}
+                    {tab === 'inbox' || tab === 'done' ? (
+                        <Tabs value={tab} onValueChange={handleTabChange} className="flex flex-col h-full">
+                            {/* Header - Match height with sidebar */}
+                            <div className="flex items-center justify-between h-[52px] px-6 border-b bg-background/50 backdrop-blur-sm">
+                                <h1 className="text-xl font-bold capitalize bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                                     Inbox
-                                </TabsTrigger>
-                                <TabsTrigger value="done">
-                                    Done
-                                </TabsTrigger>
-                            </TabsList>
-                        </div>
+                                </h1>
+                                <TabsList>
+                                    <TabsTrigger value="inbox">
+                                        Inbox
+                                    </TabsTrigger>
+                                    <TabsTrigger value="done">
+                                        Done
+                                    </TabsTrigger>
+                                </TabsList>
+                            </div>
 
-                        {/* Search Bar */}
-                        <div className="px-6 py-3 border-b">
-                            <input
-                                type="search"
-                                placeholder="Search emails..."
-                                className="w-full px-4 py-2 rounded-md border bg-background text-sm focus:outline-none"
-                            />
-                        </div>
+                            {/* Search Bar */}
+                            <div className="px-6 py-3 border-b bg-muted/30">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg opacity-0 group-focus-within:opacity-100 transition-opacity blur-xl" />
+                                    <input
+                                        type="search"
+                                        placeholder="Search emails..."
+                                        className="relative w-full px-4 py-2.5 rounded-lg border bg-background/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-muted-foreground/60"
+                                    />
+                                </div>
+                            </div>
 
-                        {/* Email List Content */}
-                        <TabsContent value="inbox" className="flex-1 overflow-auto m-0">
-                            {/* <div className="p-4">
-                                <p className="text-muted-foreground text-sm text-center py-8">
-                                    No emails in inbox
-                                </p>
-                            </div> */}
-                            <ThreadList />
-                        </TabsContent>
-                        <TabsContent value="done" className="flex-1 overflow-auto m-0">
-                            {/* <div className="p-4">
-                                <p className="text-muted-foreground text-sm text-center py-8">
-                                No completed emails
-                                </p>
-                                </div> */}
-                            <ThreadList />
-                        </TabsContent>
-                    </Tabs>
+                            {/* Email List Content */}
+                            <TabsContent value="inbox" className="flex-1 overflow-auto m-0">
+                                <ThreadList />
+                            </TabsContent>
+                            <TabsContent value="done" className="flex-1 overflow-auto m-0">
+                                <ThreadList />
+                            </TabsContent>
+                        </Tabs>
+                    ) : (
+                        // For other tabs (sent, drafts, etc) - simpler layout
+                        <div className="flex flex-col h-full">
+                            {/* Header */}
+                            <div className="flex items-center justify-between h-[52px] px-6 border-b bg-background/50 backdrop-blur-sm">
+                                <h1 className="text-xl font-bold capitalize bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                                    {tab}
+                                </h1>
+                            </div>
+
+                            {/* Search Bar */}
+                            <div className="px-6 py-3 border-b bg-muted/30">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg opacity-0 group-focus-within:opacity-100 transition-opacity blur-xl" />
+                                    <input
+                                        type="search"
+                                        placeholder="Search emails..."
+                                        className="relative w-full px-4 py-2.5 rounded-lg border bg-background/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-muted-foreground/60"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Email List */}
+                            <div className="flex-1 overflow-auto">
+                                <ThreadList />
+                            </div>
+                        </div>
+                    )}
                 </ResizablePanel>
 
                 <ResizableHandle withHandle />
@@ -261,7 +287,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                     minSize={30}
                 >
                     <div className="flex flex-col h-full">
-                        <div className="flex items-center justify-between h-[52px] px-6 border-b">
+                        <div className="flex items-center justify-between h-[52px] px-6 border-b bg-background/50 backdrop-blur-sm">
                             <ThreadDisplayUpper />
                         </div>
                         <ThreadDisplay />

@@ -71,7 +71,13 @@ export const accountRouter = createTRPCRouter({
         const filter: Prisma.ThreadWhereInput = {};
 
         const newAccount = new Account(account.accessToken);
-        newAccount.syncEmails().catch(console.error);
+        newAccount.syncEmails().catch(error => {
+            if (error instanceof Error && error.message === 'AUTH_EXPIRED') {
+                console.log(`Token expired for account ${account.id} - user needs to re-authenticate`);
+            } else {
+                console.error('Background sync error:', error instanceof Error ? error.message : String(error));
+            }
+        });
 
         if (input.tab === 'inbox') {
             filter.inboxStatus = true;

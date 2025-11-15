@@ -17,18 +17,49 @@ const useThread = () => {
             setAccountId(storedAccountId);
         }
     }, []);
+
     useEffect(() => {
         const storedTab = localStorage.getItem('myail-tab');
         if (storedTab) {
             setTab(storedTab);
         }
     }, []);
+
     useEffect(() => {
         const storedDone = localStorage.getItem('myail-done');
         if (storedDone) {
-            setDone(Boolean(storedDone));
+            setDone(storedDone === 'true');
         }
     }, []);
+
+    useEffect(() => {
+        const handleTabChange = (event: CustomEvent<{ tab: string }>) => {
+            const newTab = event.detail.tab;
+            setTab(newTab);
+            localStorage.setItem('myail-tab', newTab);
+            
+            if (newTab === 'done') {
+                setDone(true);
+                localStorage.setItem('myail-done', 'true');
+            } else if (newTab === 'inbox') {
+                setDone(false);
+                localStorage.setItem('myail-done', 'false');
+            }
+        }
+
+        window.addEventListener('tab-change', handleTabChange as EventListener);
+
+        return () => {
+            window.removeEventListener('tab-change', handleTabChange as EventListener)
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!accountId && accounts && accounts.length > 0 && accounts[0]) {
+            setAccountId(accounts[0].id);
+            localStorage.setItem('accountId', accounts[0].id);
+        }
+    }, [accounts, accountId])
 
     const { data: threads, isFetching, refetch } = api.account.getThreads.useQuery({
         accountId,
@@ -38,7 +69,6 @@ const useThread = () => {
         enabled: !!accountId && !!tab,
         placeholderData: e => e,
         refetchInterval: 5000,
-
     });
 
     return {
