@@ -18,6 +18,7 @@ import ThreadList from "./thread-list";
 import ThreadDisplay from "./thread-display";
 import { UserButton } from "@clerk/nextjs";
 import ComposeButton from "./compose-button";
+import SearchBar from "./search-bar";
 
 type mailProps = {
     defaultLayout: number[] | undefined,
@@ -230,16 +231,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                             </div>
 
                             {/* Search Bar */}
-                            <div className="px-6 py-3 border-b bg-muted/30">
-                                <div className="relative group">
-                                    <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg opacity-0 group-focus-within:opacity-100 transition-opacity blur-xl" />
-                                    <input
-                                        type="search"
-                                        placeholder="Search emails..."
-                                        className="relative w-full px-4 py-2.5 rounded-lg border bg-background/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-muted-foreground/60"
-                                    />
-                                </div>
-                            </div>
+                            <SearchBar />
 
                             {/* Email List Content */}
                             <TabsContent value="inbox" className="flex-1 overflow-auto m-0">

@@ -82,4 +82,4 @@ const useThread = () => {
     }
 }
 
-export default useThread
+export default useThread;

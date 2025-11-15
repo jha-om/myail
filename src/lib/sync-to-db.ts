@@ -2,6 +2,8 @@ import { db } from "@/server/db";
 import type { EmailAddress, EmailAttachment, EmailMessage } from "@/types";
 import { Prisma } from "@prisma/client";
 import pLimit from "p-limit";
+import { OramaClient } from "./orama";
+import { turndown } from "./turndown";
 
 // file where we will store the writing portion to db;
 export async function syncEmailsToDatabase(emails: EmailMessage[], accountId: string) {
@@ -11,9 +13,24 @@ export async function syncEmailsToDatabase(emails: EmailMessage[], accountId: st
 
     // for batch processing we can write like(written outside of this function);
     const limit = pLimit(2);
+
+    const orama = new OramaClient(accountId);
+    await orama.init();
+
     try {
         // await Promise.all(emails.map((email, index) => upsertEmail(email, accountId, index)));
         for (const email of emails) {
+            const body = turndown.turndown(email.body ?? email.bodySnippet ?? "");
+
+            await orama.insert({
+                subject: email.subject,
+                body,
+                from: email.from.address,
+                to: email.to.map(to => to.address),
+                sentAt: email.sentAt.toLocaleString(),
+                threadId: email.threadId,
+                rawBody: email.bodySnippet ?? "",
+            })
             await upsertEmail(email, accountId, 0);
         }
     } catch (error) {

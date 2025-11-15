@@ -1,4 +1,5 @@
 import { Account } from "@/lib/account";
+import { OramaClient } from "@/lib/orama";
 import { createTRPCRouter, privateProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
 import { emailAddressSchema } from "@/types";
@@ -240,5 +241,5 @@ export const accountRouter = createTRPCRouter({
             }
             throw error;
         }
-    })
+    }),
 })
