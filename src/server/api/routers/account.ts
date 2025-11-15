@@ -70,6 +70,9 @@ export const accountRouter = createTRPCRouter({
         const account = await authorizeAccountAccess(input.accountId, ctx.auth.userId);
         const filter: Prisma.ThreadWhereInput = {};
 
+        const newAccount = new Account(account.accessToken);
+        newAccount.syncEmails().catch(console.error);
+
         if (input.tab === 'inbox') {
             filter.inboxStatus = true;
         } else if (input.tab === 'drafts') {

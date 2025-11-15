@@ -24,6 +24,8 @@
     "@ai-sdk/openai": "^2.0.64",
     "@ai-sdk/rsc": "^1.0.89",
     "@clerk/nextjs": "^6.33.7",
+    "@orama/orama": "^3.1.16",
+    "@orama/plugin-data-persistence": "^3.1.16",
     "@prisma/client": "^6.5.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.15",
