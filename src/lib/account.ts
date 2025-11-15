@@ -165,7 +165,18 @@ export class Account {
         if (response.nextDeltaToken) {
             storedDeltaToken = response.nextDeltaToken;
         }
+        
+        while (response.nextPageToken) {
+            response = await this.getUpdatedEmails({
+                pageToken: response.nextPageToken,
+            });
+            allEmails = allEmails.concat(response.records);
 
+            if (response.nextDeltaToken) {
+                storedDeltaToken = response.nextDeltaToken;
+            }
+        }
+        
         try {
             await syncEmailsToDatabase(allEmails, account.id);
         } catch (error) {
@@ -180,16 +191,6 @@ export class Account {
             }
         })
 
-        while (response.nextPageToken) {
-            response = await this.getUpdatedEmails({
-                pageToken: response.nextPageToken,
-            });
-            allEmails = allEmails.concat(response.records);
-
-            if (response.nextDeltaToken) {
-                storedDeltaToken = response.nextDeltaToken;
-            }
-        }
 
         return {
             emails: allEmails,
