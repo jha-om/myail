@@ -10,26 +10,101 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { UserButton } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import Sidebar from "./sidebar";
-import ThreadList from "./thread-list";
-import ThreadDisplay from "./thread-display";
-import { UserButton } from "@clerk/nextjs";
 import ComposeButton from "./compose-button";
-import SearchBar from "./search-bar";
+import SearchBar, { isSearchingAtom } from "./search-bar";
+import Sidebar from "./sidebar";
+import ThreadDisplay from "./thread-display";
+import ThreadList from "./thread-list";
+import { useAtom } from "jotai";
 
 type mailProps = {
     defaultLayout: number[] | undefined,
     navCollapsedSize: number,
     defaultCollapse: boolean
 }
+
 const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, defaultCollapse }: mailProps) => {
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapse);
     const [tab, setTab] = useState<string>('inbox');
     const searchParams = useSearchParams();
+    const isSearching = useAtom(isSearchingAtom);
 
+    const isUserTyping = (): boolean => {
+        const activeElement = document.activeElement;
+
+        if (!activeElement || activeElement === document.body || activeElement.tagName === 'HTML') {
+            return false;
+        }
+
+        if (activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.tagName === 'SELECT') {
+            return true;
+        }
+
+        if (activeElement.getAttribute('contenteditable') === 'true' ||
+            (activeElement as HTMLElement).isContentEditable) {
+            return true;
+        }
+
+        if (activeElement.classList.contains('ProseMirror') ||
+            activeElement.closest('.tiptap') ||
+            activeElement.closest('[contenteditable="true"]')) {
+            return true;
+        }
+        
+        if (activeElement.closest('.select__control')) {
+            return true;
+        }
+        return false;
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === '/') {
+                if (isUserTyping()) {
+                    return;
+                }
+
+                if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) {
+                    return;
+                };
+
+                e.preventDefault();
+
+                const searchInput = document.getElementById('email-search-input') as HTMLInputElement;
+                if (searchInput) {
+                    searchInput.focus();
+                    if (searchInput.value) {
+                        searchInput.select();
+                    }
+                }
+            }
+
+            if (e.key === 'Escape') {
+                if (isSearching) {
+                    e.preventDefault();
+                    const searchInput = document.getElementById('email-search-input') as HTMLInputElement;
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.blur();
+                        const event = new Event('input', { bubbles: true });
+                        searchInput.dispatchEvent(event);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [isSearching])
 
     useEffect(() => {
         const error = searchParams.get('error');
@@ -95,7 +170,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                     )}
                 >
                     <div className="flex flex-col h-full bg-linear-to-b from-background to-muted/20">
-                        {/* Account Switcher - Match height with email panel header */}
+                        {/* Account Switcher */}
                         <div className={cn(
                             "flex items-center h-[52px] border-b bg-background/50 backdrop-blur-sm",
                             isCollapsed ? "justify-center" : "px-6 justify-center"
@@ -115,7 +190,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                         {/* Spacer */}
                         <div className="flex-1" />
 
-                        {/* User Actions Section - Enhanced Design */}
+                        {/* User Actions Section */}
                         <div className={cn(
                             "p-3 space-y-3 bg-linear-to-t from-background/80 to-transparent backdrop-blur-sm",
                             isCollapsed && "p-2"
@@ -181,7 +256,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                             </div>
                         </div>
 
-                        {/* Ask AI Button - Enhanced */}
+                        {/* Ask AI Button */}
                         <div className="border-t bg-background/50 backdrop-blur-sm">
                             <div className="p-3">
                                 <div className="relative group">

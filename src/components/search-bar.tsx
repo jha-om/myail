@@ -4,19 +4,29 @@ import useThread from "@/hooks/use-thread";
 import { cn } from "@/lib/utils";
 import { atom, useAtom } from "jotai";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 export const searchValueAtom = atom('');
-export const isSearchAtom = atom(false);
+export const isSearchingAtom = atom(false);
 
 const SearchBar = () => {
     const [searchValue, setSearchValue] = useAtom(searchValueAtom);
-    const [isSearching, setIsSearching] = useAtom(isSearchAtom);
-    
+    const [isSearching, setIsSearching] = useAtom(isSearchingAtom);
+
     const { isFetching } = useThread();
     const hasSearchValue = searchValue.length > 0;
 
+    useEffect(() => {
+        setIsSearching(hasSearchValue);
+    }, [hasSearchValue, setIsSearching]);
+
+    const handleClear = () => {
+        setSearchValue('');
+        setIsSearching(false);
+    }
+
     const handleBlur = () => {
-        if (searchValue !== '') {
+        if (!searchValue) {
             return;
         }
         setIsSearching(false);
@@ -27,6 +37,7 @@ const SearchBar = () => {
                 <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg opacity-0 group-focus-within:opacity-100 transition-opacity blur-xl" />
 
                 <input
+                    id="email-search-input"
                     type="search"
                     placeholder="Search emails..."
                     className={cn(
@@ -44,14 +55,13 @@ const SearchBar = () => {
                     {isFetching && (
                         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     )}
-                    
+
                     {hasSearchValue && !isFetching && (
                         <button
                             className="rounded-full p-1 hover:bg-muted transition-colors"
-                            onClick={() => setSearchValue('')}
+                            onClick={handleClear}
                             aria-label="Clear search"
                         >
-                            {/* <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /> */}
                         </button>
                     )}
                 </div>
