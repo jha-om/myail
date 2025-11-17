@@ -20,6 +20,7 @@ import Sidebar from "./sidebar";
 import ThreadDisplay from "./thread-display";
 import ThreadList from "./thread-list";
 import { useAtom } from "jotai";
+import AskAI from "@/app/mail/_components/ask-ai";
 
 type mailProps = {
     defaultLayout: number[] | undefined,
@@ -56,7 +57,7 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
             activeElement.closest('[contenteditable="true"]')) {
             return true;
         }
-        
+
         if (activeElement.closest('.select__control')) {
             return true;
         }
@@ -190,6 +191,28 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                         {/* Spacer */}
                         <div className="flex-1" />
 
+                        {/* Ask AI Button */}
+                        {/* <div className="border-b bg-background/50 backdrop-blur-sm">
+                            <div className="p-3">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-linear-to-r from-primary/20 via-primary/30 to-primary/20 rounded-lg blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <button className={cn(
+                                        "relative w-full bg-linear-to-r from-primary to-primary/90 rounded-lg text-primary-foreground hover:from-primary/90 hover:to-primary/80 transition-all duration-300 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
+                                        isCollapsed ? "h-10 w-10 rounded-full text-xs mx-auto flex items-center justify-center" : "h-11 text-sm flex items-center justify-center gap-2"
+                                    )}>
+                                        {isCollapsed ? (
+                                            <AskAI isCollapsed={isCollapsed} />
+                                        ) : (
+                                            <AskAI isCollapsed={false} />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div> */}
+
+                        <div className="border-b bg-background/50 backdrop-blur-sm">
+                            <AskAI isCollapsed={isCollapsed} />
+                        </div>
                         {/* User Actions Section */}
                         <div className={cn(
                             "p-3 space-y-3 bg-linear-to-t from-background/80 to-transparent backdrop-blur-sm",
@@ -253,27 +276,6 @@ const MailComponent = ({ defaultLayout = [20, 32, 48], navCollapsedSize, default
                                         </div>
                                     </>
                                 )}
-                            </div>
-                        </div>
-
-                        {/* Ask AI Button */}
-                        <div className="border-t bg-background/50 backdrop-blur-sm">
-                            <div className="p-3">
-                                <div className="relative group">
-                                    <div className="absolute inset-0 bg-linear-to-r from-primary/20 via-primary/30 to-primary/20 rounded-lg blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <button className={cn(
-                                        "relative w-full bg-linear-to-r from-primary to-primary/90 rounded-lg text-primary-foreground hover:from-primary/90 hover:to-primary/80 transition-all duration-300 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
-                                        isCollapsed ? "h-10 w-10 rounded-full text-xs mx-auto flex items-center justify-center" : "h-11 text-sm flex items-center justify-center gap-2"
-                                    )}>
-                                        {isCollapsed ? (
-                                            <span className="text-xs">AI</span>
-                                        ) : (
-                                            <>
-                                                <span>Ask AI</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
