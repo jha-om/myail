@@ -11,8 +11,49 @@ import { toast } from "sonner";
 
 const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
     const { accountId } = useThread();
-    const [input, setInput] = useState<string>("");
 
+    if (isCollapsed) {
+        return null;
+    }
+
+    if (accountId === null) {
+        return (
+            <div className="p-4">
+                <div className="flex flex-col items-center justify-center gap-3 py-8 text-muted-foreground">
+                    <Loader2 className="size-6 animate-spin" />
+                    <div className="text-center">
+                        <p className="text-sm font-medium">Loading account...</p>
+                        <p className="text-xs mt-1">Please wait while we initialize your AI assistant</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (accountId === '') {
+        return (
+            <div className="p-4">
+                <div className="flex flex-col items-center justify-center gap-3 py-8 text-muted-foreground">
+                    <SparklesIcon className="size-6" />
+                    <div className="text-center">
+                        <p className="text-sm font-medium">No account selected</p>
+                        <p className="text-xs mt-1">Please select an account to use AI assistant</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return <AskAIChat key={accountId} accountId={accountId} />;
+}
+const AskAIChat = ({ accountId }: { accountId: string }) => {
+    const [input, setInput] = useState<string>("");
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+    
     const { messages, sendMessage, status, setMessages } = useChat<UIMessage>({
         transport: new DefaultChatTransport({
             api: '/api/chat',
@@ -20,7 +61,7 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 accountId,
             }
         }),
-        onError: (error) => {
+        onError: (error: Error) => {
             console.error('Chat error:', error);
             toast.error('Failed to send message. Please try again.');
         }
@@ -36,12 +77,24 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
             });
         }
     }, [messages]);
+    
+    if (!accountId || accountId === '' || accountId === 'null' || accountId === 'undefined') {
+        return (
+            <div className="p-4">
+                <div className="text-center text-destructive">
+                    <p className="text-sm">Invalid account ID</p>
+                </div>
+            </div>
+        );
+    }
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim()) {
             return;
         }
+
         sendMessage({
             text: input,
         });
@@ -50,7 +103,6 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
     const handleSuggestionClick = (suggestion: string) => {
         setInput(suggestion);
-        // Auto-submit after setting input
         setTimeout(() => {
             const form = document.querySelector('form');
             if (form) {
@@ -64,8 +116,14 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
         toast.success('Conversation cleared');
     }
 
-    if (isCollapsed) {
-        return null;
+    if (!isMounted) {
+        return (
+            <div className="p-4">
+                <div className="flex items-center justify-center">
+                    <Loader2 className="size-4 animate-spin" />
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -84,7 +142,7 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
                         <p className="text-xs text-muted-foreground">Get instant answers about your emails</p>
                     </div>
                 </div>
-                
+
                 {messages.length > 0 && (
                     <button
                         onClick={handleClearConversation}
@@ -97,14 +155,14 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
             </div>
 
             {/* Chat Container */}
-            <motion.div 
+            <motion.div
                 className={cn(
                     "flex flex-col border rounded-lg bg-card shadow-sm transition-all",
                     messages.length > 0 ? "min-h-[300px]" : "min-h-[120px]"
                 )}
             >
                 {/* Messages Area */}
-                <div 
+                <div
                     className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[400px] scroll-smooth"
                     id="message-container"
                 >
@@ -208,7 +266,7 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
                         <div className="relative flex-1 group">
                             {/* Glow Effect */}
                             <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-primary/5 rounded-lg opacity-0 group-focus-within:opacity-100 transition-opacity blur-xl" />
-                            
+
                             {/* Input Field */}
                             <input
                                 type="text"
