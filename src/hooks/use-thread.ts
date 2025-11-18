@@ -6,17 +6,28 @@ export const threadIdAtom = atom<string | null>(null);
 
 const useThread = () => {
     const { data: accounts } = api.account.getAccounts.useQuery();
-    const [accountId, setAccountId] = useState<string>('');
+    
+    const [accountId, setAccountId] = useState<string | null>(null);
     const [tab, setTab] = useState<string>('inbox');
     const [done, setDone] = useState<boolean>(false);
     const [threadId, setThreadId] = useAtom(threadIdAtom);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
+        if (isInitialized) return;
+
         const storedAccountId = localStorage.getItem('accountId');
+
         if (storedAccountId) {
             setAccountId(storedAccountId);
+            setIsInitialized(true);
+        } else if (accounts && accounts.length > 0) {
+            const firstAccountId = accounts[0]!.id;
+            setAccountId(firstAccountId);
+            localStorage.setItem('accountId', firstAccountId);
+            setIsInitialized(true);
         }
-    }, []);
+    }, [accounts, isInitialized]);
 
     useEffect(() => {
         const storedTab = localStorage.getItem('myail-tab');
@@ -26,24 +37,15 @@ const useThread = () => {
     }, []);
 
     useEffect(() => {
-        const storedDone = localStorage.getItem('myail-done');
-        if (storedDone) {
-            setDone(storedDone === 'true');
-        }
-    }, []);
-
-    useEffect(() => {
         const handleTabChange = (event: CustomEvent<{ tab: string }>) => {
             const newTab = event.detail.tab;
             setTab(newTab);
             localStorage.setItem('myail-tab', newTab);
-            
+
             if (newTab === 'done') {
                 setDone(true);
-                localStorage.setItem('myail-done', 'true');
             } else if (newTab === 'inbox') {
                 setDone(false);
-                localStorage.setItem('myail-done', 'false');
             }
         }
 
@@ -54,22 +56,18 @@ const useThread = () => {
         }
     }, []);
 
-    useEffect(() => {
-        if (!accountId && accounts && accounts.length > 0 && accounts[0]) {
-            setAccountId(accounts[0].id);
-            localStorage.setItem('accountId', accounts[0].id);
+    const { data: threads, isFetching, refetch } = api.account.getThreads.useQuery(
+        {
+            accountId: accountId ?? "",
+            tab,
+            done
+        }, 
+        {
+            enabled: !!accountId && accountId !== '',
+            placeholderData: (previousData) => previousData,
+            refetchInterval: 5000,
         }
-    }, [accounts, accountId])
-
-    const { data: threads, isFetching, refetch } = api.account.getThreads.useQuery({
-        accountId,
-        tab,
-        done
-    }, {
-        enabled: !!accountId && !!tab,
-        placeholderData: e => e,
-        refetchInterval: 5000,
-    });
+    );
 
     return {
         threads,
